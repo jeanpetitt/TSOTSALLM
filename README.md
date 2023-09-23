@@ -16,6 +16,19 @@ We identified different ways to fine-tune LLMs so as to reduce it size: techniqu
 
 #### Technique 1
 Picture + description
+this approach consist to use PEFT, LoRA and QLoRA techniques that allow us to train our LLM with drastic reduction of RAM requirements and consequently  allowing to fine tune this models on a single GPU of reaseonable size.
+
+The usual step to train an LLM consist firstly, an intensive pre-training on billions or trillions of token to obtain a base model and then we can start the fine-tuning process on this model to specialize it on a specific tasks. it is in this phase that the PEFT has its purpose.
+
+* Peft is used to add the news parameters or layer on top from pre-trained base model. that layers is generally called <b>Adapters</b> and the techniques for fitting them is called <strong> Adaptation Tuning </strong>. We use this technique to reduce RAM and storage requirement by only fine. 
+Furthermoree, it enhances the reutilisablity and portability of the model. as the small control point obtained can be easily added to the base model and this model can be easily refine and reused  in multiple scenarios by adding the peft parametters.
+
+* In Low-Rank Adaption for LLM, the idea is not to include the new layers but to add values to the parameters in a way to avoid the problem of latence in inference step. using LoRA allows us to train and store the changes of the addtional weights of the pre-trained model. 
+* In QloRA we quantize the LoRa method allowing 4-bit normal quantization, nf4, a type optimized for normally distributed weights,double quantization to reduce the memory footprint and the optimization of the GPU unified memory like NVIDIA
+
+
+
+
 
 #### Technique 2
 Picture + description
@@ -30,3 +43,7 @@ The methodology is an ongoing process of reflexion and revision, during which ap
 
 
 
+### Experimentation
+ we used 10% of our dataset for fine-tune LLama 2.
+We did this to be able to experiment with our approaches, as we didn't have sufficient computational resources.
+since we don't have any local resources available to run our LLM, we used the development environment <strong>Google Colab</strong>, which has an NVIDIA T4 GPU (16GB) available for a period of around 2h30 min. which doesn't allow us to run the LLM on our entire dataset.
