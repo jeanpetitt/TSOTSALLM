@@ -45,3 +45,9 @@ The methodology is an ongoing process of reflection and revision, during which a
 The current experimentation environment consists of the free <strong>Google Colab</strong> having an NVIDIA T4 GPU (16GB) available for a period less than 2h30 min. This environment can be used to train the  Llama 2 on only <strong>10% of the dataset</strong>. When more data is added, the RAM fills up and the processing cannot continue.
 
 Using this development environment, we are currently working on the first approach presented previously and a first result was submitted to the boot.
+
+
+### Contacts
+
+* jeanpetityvelos@gmail.com
+* jiofidelus@gmail.com
