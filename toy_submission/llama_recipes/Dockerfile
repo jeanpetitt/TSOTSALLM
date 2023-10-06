@@ -10,7 +10,7 @@ COPY ./fast_api_requirements.txt fast_api_requirements.txt
 RUN pip install --no-cache-dir --upgrade -r fast_api_requirements.txt
 
 ENV HUGGINGFACE_TOKEN="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"
-ENV HUGGINGFACE_REPO="yvelos/Tsotsallm"
+ENV HUGGINGFACE_REPO="edumunozsala/llama-2-7b-int4-python-code-20k"
 
 # Copy over single file server
 COPY ./main.py main.py

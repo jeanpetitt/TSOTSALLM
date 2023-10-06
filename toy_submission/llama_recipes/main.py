@@ -6,7 +6,6 @@ import time
 
 import torch
 from huggingface_hub import login
-from dotenv import load_dotenv
 from transformers import LlamaTokenizer
 from llama_recipes.inference.model_utils import load_model, load_peft_model
 
@@ -25,7 +24,7 @@ app = FastAPI()
 logger = logging.getLogger(__name__)
 # Configure the logging module
 logging.basicConfig(level=logging.INFO)
-load_dotenv()
+
 login(token=os.environ["HUGGINGFACE_TOKEN"])
 
 model = load_model('meta-llama/Llama-2-7b-hf', True)
