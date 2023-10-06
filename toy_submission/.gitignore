@@ -1,4 +1,4 @@
-toy_submission/__pycache__/
+__pycache__/
 venv/
 .env
 toy_submission.zip
