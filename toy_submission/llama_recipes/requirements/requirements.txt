@@ -1,6 +1,6 @@
 git+https://github.com/stanford-crfm/helm.git
 transformers
-peft==
+peft
 accelerate
 bitsandbytes
 trl
