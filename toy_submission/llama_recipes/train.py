@@ -101,9 +101,6 @@ def argsparser():
     return args
 
 
-args = argsparser()
-
-
 def loginHub():
     # @title Login on hugging face
     from huggingface_hub import login, notebook_login
@@ -157,9 +154,9 @@ bbq = TsotsaDataset(split="", type_dataset='bbq',
 bbq._load_bbq()
 
 
-def train_model(model_id, datasets):
+def train_model(args, datasets):
     i = 0
-    
+
     hf_model_rep = args.hf_rep
     device_map = {'': 0}
     # run list of all dataset
@@ -167,22 +164,22 @@ def train_model(model_id, datasets):
         for dataset in datasets:
             if dataset.get_type() == "bb":
                 formating_function = dataset.prepare_bb_scenario
-                args.output_dir = f'{dataset.get_name()}_bb'
+                args.output_dir = f'{dataset.get_type()}_bb'
             elif dataset.get_type() == "TruthfullQA":
                 formating_function = dataset.prepare_truthfulqa_scenario
-                args.output_dir = f'{dataset.get_name()}_MCQ'
+                args.output_dir = f'{dataset.get_type()}_MCQ'
                 args.epochs = 3
                 if dataset.get_name() == 'commonsense_qa':
                     args.epochs = 2
             elif dataset.get_type() == "summary":
                 formating_function = dataset.prepare_summerization_scenario
-                args.output_dir = f'{dataset.get_name()}_summarization'
+                args.output_dir = f'{dataset.get_type()}_summarization'
                 args.epochs = 1
             elif dataset.get_type() == 'bbq':
                 formating_function = dataset.prepare_bbq_scenario
-                args.output_dir = f'{dataset.get_name()}_bbq'
+                args.output_dir = f'{dataset.get_type()}_bbq'
             if i == 0:
-                model_id = model_id
+                model_id = args.model_name
                 i += 1
             else:
                 model_id = args.output_dir
@@ -331,7 +328,8 @@ def train_model(model_id, datasets):
                 optim=optim,
                 save_steps=save_steps,
                 logging_steps=logging_steps,
-                save_strategy="epoch",
+                save_strategy="steps",
+                logging_dir=f"{args.output_dir}/logs",
                 learning_rate=learning_rate,
                 weight_decay=weight_decay,
                 fp16=fp16,
@@ -377,70 +375,59 @@ def train_model(model_id, datasets):
                 f"Total training time {end_time} min\n")
 
             print(f"Total training time {end_time} min")
-            # save metrics
-            # trainer.save_metrics()
 
-            # save_model in local
-            trainer.save_model()
+            # Merge the LoRA and Base model
+            if args.merge_weights:
+                # save_model in local
+                trainer.save_model()
+                """# Merge the model and adpater and save it
+                if running in a T4 instance we have to clean the memory
+                """
+                # @title empty VRAM
+                import gc
+                del model
+                del trainer
+                gc.collect()
+                th.cuda.empty_cache()
 
-            """# Merge the model and adpater and save it
+                # @title Reload the trained and saved model and merge it then we can save the whole model
+                model = AutoPeftModelForCausalLM.from_pretrained(
+                    args.output_dir,
+                    low_cpu_mem_usage=True,
+                    return_dict=True,
+                    torch_dtype=th.float16,
+                    device_map={'': 0},
+                    is_trainable=True
+                )
+                model = model.merge_and_unload()
+                tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+                model.generation_config.temperature = 0.8
+                model.generation_config.do_sample = True
+                model.generation_config.num_beams = 4
+                print('save the merge model')
+                model.save_pretrained("merged/model")
+                tokenizer.save_pretrained("merged/model")
+                f.write(
+                    "=============== Model Merged infos========================\n")
+                f.write(f"Model architecture: {args.output_dir}\n")
+                f.write(f"Save directory:\n {model.config}\n")
+                f.write(f"Model architecture: {model}\n")
+                f.write(f"Model parameters: {model.num_parameters()}\n")
+                f.write(f"Model config:\n {model.config}\n")
 
-            if running in a T4 instance we have to clean the memory
-            """
-
-            # @title empty VRAM
-            import gc
-            del model
-            del trainer
-            gc.collect()
-
-            th.cuda.empty_cache()
-
-            gc.collect()
-
-            # @title Reload the trained and saved model and merge it then we can save the whole model
-            model_fine = AutoPeftModelForCausalLM.from_pretrained(
-                args.output_dir,
-                low_cpu_mem_usage=True,
-                return_dict=True,
-                torch_dtype=th.float16,
-                device_map={'': 0},
-                is_trainable=True
-            )
-            tokenizer = AutoTokenizer.from_pretrained(args.output_dir)
-            model_fine.generation_config.temperature = 0.8
-            model_fine.generation_config.do_sample = True
-            model_fine.generation_config.num_beams = 4
-            # # config json
-            model_fine.config.pretraining_tp = 1
-            model_fine.config.temperature = 0.8
-            model_fine.config.do_sample = True
-            # save the merge model
-            # model_fine.push_to_hub("yvelos/Tes")
-            # tokenizer.push_to_hub("yvelos/Tes")
-            f.write(
-                "=============== Model Fine tuning infos========================\n")
-            f.write(f"Model architecture: {args.output_dir}\n")
-            f.write(f"Model architecture: {model_fine}\n")
-            f.write(f"Model parameters: {model_fine.num_parameters()}\n")
-            f.write(f"Model config:\n {model_fine.config}\n")
-            # f.write(f"=============== Model merged infos========================\n")
-            # f.write(f"Model name: {merged_model}\n")
-            # f.write(f"Model parameters: {merged_model.num_parameters()}\n")
-            # f.write(f"Model config:\n {merged_model.config}\n")
+            else:
+                trainer.save_model()
+                del trainer, model
+                th.cuda.empty_cache()
             f.write(
                 f"=============== END TO train model========================\n\n\n")
-
-            # @title Push Merged Model to the Hub
-            # # merged_model.push_to_hub(args.hf_rep)
-            # tokenizer.push_to_hub(args.hf_rep)
             del model_fine
             th.cuda.empty_cache()
             print("===========END TO train model=====================")
 
             model_train_path = args.output_dir
             log_path = 'Logs.txt'
-            log_path_save = '/content/drive/MyDrive/neurips_challenge/logs.txt'
+            log_path_save = '/content/drive/MyDrive/neurips_challenge/logs/log.txt'
             model_train_path_save = f'/content/drive/MyDrive/neurips_challenge/{args.output_dir}'
 
             if os.path.exists(model_train_path_save):
@@ -460,18 +447,20 @@ def train_model(model_id, datasets):
 
 
 def main1():
+    args = argsparser()
     print("""
         Start training our model By loading the dataset.
     """)
-    
-    datasets = [lima, dolly, truth1, truth2,common_sense, ai2_arc, bbq, xsum, cnn_dailymail]
-    # datasets = [ai2_arc, common_sense, truth1, truth2, bbq]
-    
-    # train_model(datasets=datasets, model_id=args.model_name)
-    base_model = '/content/drive/MyDrive/neurips_challenge/Tsotsallm'
-    adapter_path = '/content/drive/MyDrive/neurips_challenge/adapters'
-    from adapter_utils import add_adapters, model_push_to_hub
-    add_adapters(adapter_path, base_model)
+
+    # datasets = [lima, dolly, truth1, truth2,
+    #             common_sense, ai2_arc, bbq, xsum, cnn_dailymail]
+    datasets = [ai2_arc, common_sense, truth1, truth2, bbq]
+
+    train_model(datasets=datasets, model_id=args.model_name)
+    # base_model = '/content/drive/MyDrive/neurips_challenge/Tsotsallm'
+    # adapter_path = '/content/drive/MyDrive/neurips_challenge/adapters'
+    # from adapter_utils import add_adapters, model_push_to_hub
+    # add_adapters(adapter_path, base_model)
 
 
 if __name__ == "__main__":

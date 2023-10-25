@@ -199,20 +199,20 @@ def training_function(datasets, args):
         for dataset in datasets:     
             if dataset.get_type() == "bb":
                 formating_function = dataset.prepare_bb_scenario
-                args.output_dir = f'temp/llama2/{dataset.get_name()}_bb'
+                args.output_dir = f'temp/llama2/{dataset.get_type()}_bb'
             elif dataset.get_type() == "TruthfullQA":
                 formating_function = dataset.prepare_truthfulqa_scenario
-                args.output_dir = f'temp/llama2/{dataset.get_name()}_MCQ'
+                args.output_dir = f'temp/llama2/{dataset.get_type()}_MCQ'
                 args.epochs = 3
                 if dataset.get_name() == 'commonsense_qa':
                     args.epochs = 2
             elif dataset.get_type() == "summary":
                 formating_function = dataset.prepare_summerization_scenario
-                args.output_dir = f'temp/llama2/{dataset.get_name()}_summarization'
+                args.output_dir = f'temp/llama2/{dataset.get_type()}_summarization'
                 args.epochs = 1
             elif dataset.get_type() == 'bbq':
                 formating_function = dataset.prepare_bbq_scenario
-                args.output_dir = f'temp/llama2/{dataset.get_name()}_bbq'
+                args.output_dir = f'temp/llama2/{dataset.get_type()}_bbq'
             if i == 0:
                 model_id = args.model_name
                 i += 1
