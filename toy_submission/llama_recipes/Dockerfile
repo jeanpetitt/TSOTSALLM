@@ -1,18 +1,20 @@
 FROM ghcr.io/pytorch/pytorch-nightly:b3874ab-cu11.8.0
 
 RUN apt-get update  && apt-get install -y git python3-virtualenv wget 
-
-RUN pip install -U --no-cache-dir git+https://github.com/facebookresearch/llama-recipes.git@eafea7b366bde9dc3f0b66a4cb0a8788f560c793
+# RUN pip install -U --no-cache-dir git+https://github.com/facebookresearch/llama-recipes.git@eafea7b366bde9dc3f0b66a4cb0a8788f560c793
 
 WORKDIR /workspace
 # Setup server requriements
-COPY ./fast_api_requirements.txt fast_api_requirements.txt
-RUN pip install --no-cache-dir --upgrade -r fast_api_requirements.txt
+COPY requirements/fast_api_requirements.txt requirements/fast_api_requirements.txt
+COPY requirements/requirements.txt requirements/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements/fast_api_requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements/requirements.txt
 
 ENV HUGGINGFACE_TOKEN="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"
-ENV HUGGINGFACE_REPO="edumunozsala/llama-2-7b-int4-python-code-20k"
+ENV HUGGINGFACE_REPO="yvelos/Tes"
 
 # Copy over single file server
+COPY inference/models_utils.py inference/models_utils.py
 COPY ./main.py main.py
 COPY ./api.py api.py
 # Run the server

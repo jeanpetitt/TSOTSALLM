@@ -50,4 +50,4 @@ Using this development environment, we are currently working on the first approa
 ### Contacts
 
 * jeanpetityvelos@gmail.com
-* jiofidelus@gmail.com
+* fidel.jiomekong@facsciences-uy1.cm
