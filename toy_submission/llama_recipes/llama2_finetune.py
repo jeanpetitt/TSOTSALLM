@@ -227,6 +227,8 @@ def training_function(datasets, args):
             """
             TrainingArgument parameters
             """
+            # device map
+            device_map = {'':0}
             # Enable fp16/bf16 training
             fp16 = False
             # Number of update steps to accumulate the gradients
@@ -272,7 +274,8 @@ def training_function(datasets, args):
                 use_cache=False
                 if args.gradient_checkpointing
                 else True,  # this is needed for gradient checkpointing
-                device_map="auto",
+                device_map=device_map,
+                low_cpu_mem_usage=True,
                 quantization_config=bnb_config,
             )
             tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -392,9 +395,11 @@ def training_function(datasets, args):
             tokenizer.save_pretrained(model_merge_save_dir)
 
             # model push
-            print('push model')
-            model.push_to_hub("yvelos/Test1")
-            tokenizer.push_to_hub("yvelos/Test1")
+            # print('push model')
+            # model.push_to_hub("yvelos/Test1")
+            # tokenizer.push_to_hub("yvelos/Test1")
+            del model
+            th.cuda.empty_cache()
 
 
 def main():
