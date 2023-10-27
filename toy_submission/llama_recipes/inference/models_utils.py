@@ -1,6 +1,6 @@
 from peft import PeftModel, AutoPeftModelForCausalLM
 import torch as th
-from transformers import LlamaForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
 # Function to load the LlamaForCausalLM model
@@ -15,13 +15,13 @@ from transformers import LlamaForCausalLM, AutoTokenizer
 #     return model
 
 def load_peft_model(model_id):
-    model = AutoPeftModelForCausalLM.from_pretrained(
+    model = AutoModelForCausalLM.from_pretrained(
         model_id,
         low_cpu_mem_usage=True,
         return_dict=True,
         torch_dtype=th.float16,
         device_map={'': 0},
-        is_trainable=True
+        is_trainable=True,
     )
     return model
 

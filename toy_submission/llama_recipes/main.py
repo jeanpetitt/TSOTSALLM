@@ -28,11 +28,11 @@ load_dotenv()
 login(token='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')
 
 # model = load_model('meta-llama/Llama-2-7b-hf', True)
-model = load_peft_model('yvelos/Tsotsallm-beta')
+model = load_peft_model('yvelos/yvelosTest4')
 
-model.eval()
+print(model.eval())
 
-tokenizer = load_tokenizer('yvelos/Tes1')
+tokenizer = load_tokenizer('meta-llama/Llama-2-7b-hf')
 
 LLAMA2_CONTEXT_LENGTH = 4096
 
@@ -41,8 +41,8 @@ LLAMA2_CONTEXT_LENGTH = 4096
 async def process_request(input_data: ProcessRequest) -> ProcessResponse:
     if input_data.seed is not None:
         torch.manual_seed(input_data.seed)
-
-    encoded = tokenizer(input_data.prompt, return_tensors="pt")
+    prompt = 'Welcome in your virtual assistant!!!!!!!\n' + input_data.prompt
+    encoded = tokenizer(prompt, return_tensors="pt")
 
     prompt_length = encoded["input_ids"][0].size(0)
     max_returned_tokens = prompt_length + input_data.max_new_tokens
@@ -64,7 +64,7 @@ async def process_request(input_data: ProcessRequest) -> ProcessResponse:
             output_scores=True,
         )
 
-    t = time.perf_counter() - t0
+    time_f = time.perf_counter() - t0
     if not input_data.echo_prompt:
         output = tokenizer.decode(
             outputs.sequences[0][prompt_length:], skip_special_tokens=True)
@@ -74,7 +74,7 @@ async def process_request(input_data: ProcessRequest) -> ProcessResponse:
 
     tokens_generated = outputs.sequences[0].size(0) - prompt_length
     logger.info(
-        f"Time for inference: {t:.02f} sec total, {tokens_generated / t:.02f} tokens/sec"
+        f"Time for inference: {t:.02f} sec total, {tokens_generated / time_f:.02f} tokens/sec"
     )
 
     logger.info(
@@ -103,7 +103,7 @@ async def process_request(input_data: ProcessRequest) -> ProcessResponse:
     logprob_sum = gen_logprobs.sum().item()
 
     return ProcessResponse(
-        text=output, tokens=generated_tokens, logprob=logprob_sum, request_time=t
+        text=output, tokens=generated_tokens, logprob=logprob_sum, request_time=time_f
     )
 
 

@@ -122,24 +122,24 @@ loginHub()
 
 # BB Scenario QA
 lima = TsotsaDataset(split="train[:85%]", type_dataset="bb", name='GAIR/lima')
-lima._load_lima()
+# lima._load_lima()
 dolly = TsotsaDataset(
     split="train[:20%]", type_dataset="bb", name='databricks/databricks-dolly-15k')
-dolly._load_dolly()
+# dolly._load_dolly()
 
 # truthfull QA
 ai2_arc = TsotsaDataset(
     split="train", type_dataset="TruthfullQA", name="ai2_arc")
-ai2_arc._load_ai2_arc()
+# ai2_arc._load_ai2_arc()
 common_sense = TsotsaDataset(
     split="train", type_dataset="TruthfullQA", name="commonsense_qa")
-common_sense._load_commonsense_qa()
+# common_sense._load_commonsense_qa()
 truth1 = TsotsaDataset(
     split="validation", type_dataset="TruthfullQA", name="generation")
-truth1._load_truthfulqa()
+# truth1._load_truthfulqa()
 truth2 = TsotsaDataset(
     split="validation", type_dataset="TruthfullQA", name="multiple_choice")
-truth2._load_truthfulqa1()
+# truth2._load_truthfulqa1()
 
 # Summary Scenario QA
 cnn_dailymail = TsotsaDataset(
@@ -152,6 +152,12 @@ xsum = TsotsaDataset(split="train[:1%]", type_dataset='summary', name="xsum")
 bbq = TsotsaDataset(split="", type_dataset='bbq',
                     name="category: {Age, Disability_status, Physical_apparence, Religion, Sexual_orientation}, Link: link https://raw.githubusercontent.com/nyu-mll/BBQ/main/data/{category}.jsonl")
 bbq._load_bbq()
+bbq1 = TsotsaDataset(split="", type_dataset='bbq',
+                     name="category: {Gender, Nationality, Race_ethnicity}, Link: link https://raw.githubusercontent.com/nyu-mll/BBQ/main/data/{category}.jsonl")
+bbq1._load_bbq1()
+bbq2 = TsotsaDataset(split="", type_dataset='bbq',
+                     name="category: {Race_X_gender, Race_x_ses, Ses}, Link: link https://raw.githubusercontent.com/nyu-mll/BBQ/main/data/{category}.jsonl")
+bbq2._load_bbq2()
 
 
 def train_model(args, datasets):
@@ -178,6 +184,7 @@ def train_model(args, datasets):
             elif dataset.get_type() == 'bbq':
                 formating_function = dataset.prepare_bbq_scenario
                 args.output_dir = f'{dataset.get_type()}_bbq'
+                args.epochs = 1
             if i == 0:
                 model_id = args.model_name
                 i += 1
@@ -440,9 +447,16 @@ def train_model(args, datasets):
                 os.remove(log_path_save)
                 shutil.copy2(log_path, log_path_save)
             else:
+              # copy  train model to drive
                 shutil.copy2(log_path, log_path_save)
+            model_merged_save = f'/content/drive/MyDrive/neurips_challenge/merged'
 
-            # copy  train model to drive
+            if os.path.exists(model_merged_save):
+                shutil.rmtree(model_merged_save)
+                shutil.copytree('merged/model', model_train_path_save)
+            else:
+                shutil.copytree('merged/model', model_train_path_save)
+
     return tokenizer
 
 
@@ -454,7 +468,7 @@ def main1():
 
     # datasets = [lima, dolly, truth1, truth2,
     #             common_sense, ai2_arc, bbq, xsum, cnn_dailymail]
-    datasets = [ai2_arc, common_sense, truth1, truth2, bbq]
+    datasets = [bbq, bbq1, bbq2]
 
     train_model(datasets=datasets, model_id=args.model_name)
     # base_model = '/content/drive/MyDrive/neurips_challenge/Tsotsallm'

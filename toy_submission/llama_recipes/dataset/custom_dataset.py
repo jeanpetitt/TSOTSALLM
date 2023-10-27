@@ -28,7 +28,7 @@ def download_file(path_destination):
             f'https://raw.githubusercontent.com/nyu-mll/BBQ/main/data/{category}.jsonl')
         print(response.raise_for_status())
 
-        with open(f'{path_destination}/data.jsonl', "wb") as file:
+        with open(f'{path_destination}/{category}.jsonl', "wb") as file:
             file.write(response.content)
 
 
@@ -142,7 +142,35 @@ class TsotsaDataset:
         for file in os.listdir(path):
             print(file)
             if file.endswith(".jsonl"):
-                with jsonlines.open(f'{path}/{file}') as reader:
+                with jsonlines.open(f'{path}/bbq/{file}') as reader:
+                    for data in reader:
+                        self.dataset.append(data)
+
+        self.dataset = self.dataset[:10000]
+        # print(self.dataset.columns)
+        print("Size of dataset", len(self.dataset))
+        return self.dataset
+
+    def _load_bbq1(self):
+        # download_file(path)
+        for file in os.listdir(path):
+            print(file)
+            if file.endswith(".jsonl"):
+                with jsonlines.open(f'{path}/bbq1/{file}') as reader:
+                    for data in reader:
+                        self.dataset.append(data)
+
+        self.dataset = self.dataset[:10000]
+        # print(self.dataset.columns)
+        print("Size of dataset", len(self.dataset))
+        return self.dataset
+
+    def _load_bbq2(self):
+        # download_file(path)
+        for file in os.listdir(path):
+            print(file)
+            if file.endswith(".jsonl"):
+                with jsonlines.open(f'{path}/bbq2/{file}') as reader:
                     for data in reader:
                         self.dataset.append(data)
 
@@ -172,12 +200,12 @@ class TsotsaDataset:
         #         else:
         #             sample['instruction'] = conversations[i]
         string = f"""
-        ### Welcome in your assistant!!!!!!!
+        ### Welcome in your virtual assistant!!!!!!!
                 
-        ### INSTRUCTIONS:
+        ### Question:
         \n{sample['instruction']}
                 
-        ### ANSWER:
+        ### Answer:
         \n{sample['response']}
         """
         return string
@@ -229,10 +257,10 @@ class TsotsaDataset:
             for i in range(len(text_list)):
                 formatted_list.append(f"{label_list[i]}. {text_list[i]} \n\t")
         string = f"""
-        ### Welcome in your assistant!!!!!!!
+        ### Welcome in your virtual assistant!!!!!!!
             
-        ### INSTRUCTIONS:
-        given a question and multi choices options, you will get the correct answer\n
+        ### Question:
+        given a question and multi choices options, you will get the correct answer(s)\n
         Question: {sample['question']}
             
         {"".join(formatted_list)}
@@ -253,10 +281,10 @@ class TsotsaDataset:
             sample['summary'] = summary
             sample['document'] = document
         string = f"""
-            ### Welcome in your assistant!!!!!!!
+            ### Welcome in your virtual assistant!!!!!!!
             
-            ### INSTRUCTIONS:
-            please give an input a document or article to recive the his summary
+            ### Document:
+            please give an input a document or article to recive his summary
             {sample['document']}
 
 
@@ -299,14 +327,14 @@ class TsotsaDataset:
             choices.append(
                 f'{reference["label"][i]}. {reference["text"][i]} \n\t')
         string = f"""
-        ### Welcome in your assistant!!!!!!!
+        ### Welcome in your virtual assistant!!!!!!!
             
         ### Context
         {context}
         {question_polarity}
         {context_condition}   
             
-        ### INSTRUCTIONS:  
+        ### Question:  
         {question}
         
         {''.join(choices)}
